@@ -1,5 +1,5 @@
 ﻿<#
-.SYNOPSIS
+.SYNOPSIS 
 Deploys a Service Fabric application type to a cluster.
 
 .DESCRIPTION
@@ -10,9 +10,6 @@ WARNING: This script file is invoked by Visual Studio.  Its parameters must not 
 
 .PARAMETER PublishProfileFile
 Path to the file containing the publish profile.
-
-.PARAMETER StartupServicesFile
-Path to the file containing the startup services for debugging.
 
 .PARAMETER ApplicationPackagePath
 Path to the folder of the packaged Service Fabric application.
@@ -38,7 +35,7 @@ Indicates that the script should make use of an existing cluster connection that
 .PARAMETER OverwriteBehavior
 Overwrite Behavior if an application exists in the cluster with the same name. Available Options are Never, Always, SameAppTypeAndVersion. This setting is not applicable when upgrading an application.
 'Never' will not remove the existing application. This is the default behavior.
-'Always' will remove the existing application even if its Application type and Version is different from the application being created.
+'Always' will remove the existing application even if its Application type and Version is different from the application being created. 
 'SameAppTypeAndVersion' will remove the existing application only if its Application type and Version is same as the application being created.
 
 .PARAMETER SkipPackageValidation
@@ -72,9 +69,6 @@ Param
     $PublishProfileFile,
 
     [String]
-    $StartupServicesFile,
-
-    [String]
     $ApplicationPackagePath,
 
     [Switch]
@@ -94,7 +88,7 @@ Param
     $UseExistingClusterConnection,
 
     [String]
-    [ValidateSet('Never', 'Always', 'SameAppTypeAndVersion')]
+    [ValidateSet('Never','Always','SameAppTypeAndVersion')]
     $OverwriteBehavior = 'Never',
 
     [Switch]
@@ -104,10 +98,7 @@ Param
     $SecurityToken,
 
     [int]
-    $CopyPackageTimeoutSec,
-
-    [int]
-    $RegisterApplicationTypeTimeoutSec
+    $CopyPackageTimeoutSec
 )
 
 function Read-XmlElementAsHashtable
@@ -120,7 +111,7 @@ function Read-XmlElementAsHashtable
     $hashtable = @{}
     if ($Element.Attributes)
     {
-        $Element.Attributes |
+        $Element.Attributes | 
             ForEach-Object {
                 $boolVal = $null
                 if ([bool]::TryParse($_.Value, [ref]$boolVal)) {
@@ -143,13 +134,12 @@ function Read-PublishProfile
         $PublishProfileFile
     )
 
-    $publishProfileXml = [Xml] (Get-Content $PublishProfileFile -Encoding UTF8)
+    $publishProfileXml = [Xml] (Get-Content $PublishProfileFile)
     $publishProfile = @{}
 
     $publishProfile.ClusterConnectionParameters = Read-XmlElementAsHashtable $publishProfileXml.PublishProfile.Item("ClusterConnectionParameters")
     $publishProfile.UpgradeDeployment = Read-XmlElementAsHashtable $publishProfileXml.PublishProfile.Item("UpgradeDeployment")
     $publishProfile.CopyPackageParameters = Read-XmlElementAsHashtable $publishProfileXml.PublishProfile.Item("CopyPackageParameters")
-    $publishProfile.RegisterApplicationParameters = Read-XmlElementAsHashtable $publishProfileXml.PublishProfile.Item("RegisterApplicationParameters")
 
     if ($publishProfileXml.PublishProfile.Item("UpgradeDeployment"))
     {
@@ -162,7 +152,6 @@ function Read-PublishProfile
 
     $publishProfileFolder = (Split-Path $PublishProfileFile)
     $publishProfile.ApplicationParameterFile = [System.IO.Path]::Combine($PublishProfileFolder, $publishProfileXml.PublishProfile.ApplicationParameterFile.Path)
-    $publishProfile.StartupServiceParameterFile = [System.IO.Path]::Combine($PublishProfileFolder, $publishProfileXml.PublishProfile.StartupServiceParameterFile.Path)
 
     return $publishProfile
 }
@@ -193,7 +182,12 @@ if (-not $UseExistingClusterConnection)
 
     try
     {
+        Write-Host "Connecting to: "
+        $ClusterConnectionParameters
+
         [void](Connect-ServiceFabricCluster @ClusterConnectionParameters)
+
+        $global:clusterConnection = $clusterConnection 
     }
     catch [System.Fabric.FabricObjectClosedException]
     {
@@ -225,36 +219,20 @@ if ($publishProfile.CopyPackageParameters.CompressPackage)
     $PublishParameters['CompressPackage'] = $publishProfile.CopyPackageParameters.CompressPackage
 }
 
-if ($publishProfile.RegisterApplicationParameters.RegisterApplicationTypeTimeoutSec)
-{
-    $PublishParameters['RegisterApplicationTypeTimeoutSec'] = $publishProfile.RegisterApplicationParameters.RegisterApplicationTypeTimeoutSec
-}
-
 # CopyPackageTimeoutSec parameter overrides the value from the publish profile
 if ($CopyPackageTimeoutSec)
 {
     $PublishParameters['CopyPackageTimeoutSec'] = $CopyPackageTimeoutSec
 }
 
-# RegisterApplicationTypeTimeoutSec parameter overrides the value from the publish profile
-if ($RegisterApplicationTypeTimeoutSec)
-{
-    $PublishParameters['RegisterApplicationTypeTimeoutSec'] = $RegisterApplicationTypeTimeoutSec
-}
-
 if ($IsUpgrade)
 {
-    if ($StartupServicesFile)
-    {
-        $PublishParameters['StartupServicesFileMode'] = $true
-    }
-
     $Action = "RegisterAndUpgrade"
     if ($DeployOnly)
     {
         $Action = "Register"
     }
-
+    
     $UpgradeParameters = $publishProfile.UpgradeDeployment.Parameters
 
     if ($OverrideUpgradeBehavior -eq 'ForceUpgrade')
@@ -271,26 +249,15 @@ if ($IsUpgrade)
 }
 else
 {
-    # Pass the path to the Startup Services File if it was provided
-    if ($StartupServicesFile)
-    {
-        $PublishParameters['StartupServicesFilePath'] = $StartupServicesFile
-
-        if (-not [string]::IsNullOrEmpty($publishProfile.StartupServiceParameterFile))
-        {
-            $PublishParameters['StartupServiceParameterFilePath'] = $publishProfile.StartupServiceParameterFile
-        }
-    }
-
     $Action = "RegisterAndCreate"
     if ($DeployOnly)
     {
         $Action = "Register"
     }
-
+    
     $PublishParameters['Action'] = $Action
     $PublishParameters['OverwriteBehavior'] = $OverwriteBehavior
     $PublishParameters['SkipPackageValidation'] = $SkipPackageValidation
-
+    
     Publish-NewServiceFabricApplication @PublishParameters
 }

@@ -19,6 +19,8 @@ namespace ApiService
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            var envName = Environment.GetEnvironmentVariable("ENVIRONMENT_NAME");
+            Console.WriteLine($"Using Environment Name: {envName}");
         }
 
         public IConfiguration Configuration { get; }

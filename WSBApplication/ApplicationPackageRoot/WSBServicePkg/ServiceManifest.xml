@@ -31,6 +31,9 @@
         <!-- <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048"/> -->
       </ExeHost>
     </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="ENVIRONMENT_NAME" Value="Dev" />
+    </EnvironmentVariables>
   </CodePackage>
 
   <!-- Config package is the contents of the Config directory under PackageRoot that contains an 

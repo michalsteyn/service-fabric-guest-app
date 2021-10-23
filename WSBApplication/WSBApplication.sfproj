@@ -20,24 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ApplicationPackageRoot\ApplicationManifest.xml" />
-    <None Include="ApplicationParameters\Cloud.xml" />
     <None Include="ApplicationParameters\Local.1Node.xml" />
-    <None Include="ApplicationParameters\Local.5Node.xml" />
-    <None Include="PublishProfiles\Cloud.xml" />
     <None Include="PublishProfiles\Local.1Node.xml" />
-    <None Include="PublishProfiles\Local.5Node.xml" />
     <None Include="Scripts\Deploy-FabricApplication.ps1" />
-    <None Include="Scripts\DeployAWS1.ps1" />
     <None Include="Scripts\DeployLocal.ps1" />
-    <None Include="Scripts\DeployLocalDebug.ps1" />
-    <None Include="Scripts\DeployLocalRelease.ps1" />
-    <None Include="Scripts\DeployTestServer.ps1" />
-    <None Include="Scripts\DeployTestServerDebug.ps1" />
-    <None Include="Scripts\DeployTestServerRelease.ps1" />
     <None Include="Scripts\Get-ApplicationName.ps1" />
     <None Include="Scripts\Remove-FabricApplication.ps1" />
     <None Include="Scripts\RemoveLocal.ps1" />
-    <None Include="Scripts\RemoveTestServer.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Release\ApiService\**\*.*">
@@ -45,7 +34,9 @@
     </Content>
     <Content Include="ApplicationPackageRoot\WSBServicePkg\Config\Settings.xml" />
     <Content Include="ApplicationPackageRoot\WSBServicePkg\ServiceManifest.xml" />
+    <Content Include="ApplicationParameters\OctopusDeploy.xml" />
     <Content Include="packages.config" />
+    <Content Include="PublishProfiles\OctopusDeploy.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
   <PropertyGroup>
